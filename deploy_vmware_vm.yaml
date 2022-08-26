@@ -1,0 +1,86 @@
+#Please customize accordingly
+- name:  Clone a virtual machine from Linux template and customize
+  hosts: localhost
+  gather_facts: no
+  vars_prompt:
+    - name: vcenter_hostname
+      prompt:  Please provide host  
+      private: no
+
+    - name: vcenter_username
+      prompt: Please provide Username
+      private: no
+
+    - name: vcenter_password
+      prompt: Please provide Password
+      private: yes
+
+    - name: datacenter
+      prompt: Please provide datacenter
+      private: no
+
+    - name: folder
+      prompt: Please provide folder
+      private: no
+
+    - name: template
+      prompt: Please provide template 
+      private: no
+
+#     - name: vm_name
+#       prompt: Please provide name for your VM
+#       private: no
+
+    - name: cluster
+      prompt: Please provide cluster 
+      private: no
+
+#     - name: IP_Address
+#       prompt: Please provide IP_Address 
+#       private: no
+
+    - name: netmask
+      prompt: Please provide netmask  
+      private: no   
+
+
+    - name: gateway
+      prompt: gateway
+      private: no
+
+    
+  tasks:
+    - name: VM creation
+      #when: inventory_hostname in groups['local']
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: False
+        datacenter: "{{ datacenter  }}"
+        folder: "{{ folder  }}"
+        template: "{{ template  }}"
+        #name: "{{ vm_name }}"
+        name: "{{ item.name }}"
+        cluster: "{{ cluster  }}"
+        networks:
+        - name: "test portgroup"
+          #ip: "{{ IP_Address }}"
+          ip: "{{ item.ip }}"
+          netmask: "{{ netmask }}" 
+          gateway: "{{ gateway }}"
+          type: static
+          dns_servers: 8.8.8.8
+        customization:
+          #hostname: "{{ vm_name }}"
+          hostname: "{{ item.name }}"
+          dns_servers:
+          - 8.8.8.8
+        wait_for_ip_address: yes
+        wait_for_customization: yes
+      with_items:
+      - {name: master, ip: "xxx.xxx.xxx.xxx"}
+      - {name: worker1, ip: "xxx.xxx.xxx.xxx"}
+      - {name: worker2, ip: "xxx.xxx.xxx.xxx"}
+      delegate_to: localhost
+
